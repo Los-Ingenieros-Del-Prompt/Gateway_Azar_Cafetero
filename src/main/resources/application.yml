@@ -1,0 +1,90 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  # ── WebClient (para llamar al auth-service internamente) ──────────────────
+  main:
+    web-application-type: reactive
+
+  # ── Redis (requerido para RequestRateLimiter) ─────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  # ── Spring Cloud Gateway ──────────────────────────────────────────────────
+  cloud:
+    gateway:
+
+      # CORS global
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins:
+              - ${FRONTEND_URL:http://localhost:3000}
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers:
+              - "*"
+            exposed-headers:
+              - Authorization
+            allow-credentials: true
+            max-age: 3600
+
+      routes:
+
+        # ── Auth (manejado por el gateway — NO pasa al auth-service directamente)
+        # POST /auth/google → AuthController del gateway → llama auth-service → cookie HttpOnly
+        # POST /auth/logout → AuthController del gateway → borra cookie
+        # GET  /auth/me     → AuthController del gateway → verifica sesión
+        # (estas rutas NO tienen entrada aquí — las maneja el @RestController local)
+
+        # ── Lobby Service (requiere cookie AUTH_TOKEN válida) ─────────────
+        # El JwtCookieFilter lee la cookie e inyecta Authorization header
+        - id: lobby
+          uri: ${LOBBY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/**
+          filters:
+            - JwtCookieFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+
+      httpclient:
+        wiretap: false
+      httpserver:
+        wiretap: false
+
+# ── JWT ───────────────────────────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET}
+
+# ── Actuator ─────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    health:
+      show-details: always
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    com.aguardientes.azarcafetero: DEBUG
+    org.springframework.cloud.gateway: INFO
