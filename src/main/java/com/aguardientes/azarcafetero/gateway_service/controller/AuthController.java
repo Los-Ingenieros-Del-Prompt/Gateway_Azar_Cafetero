@@ -15,19 +15,10 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.Map;
 
-/**
- * Endpoint de autenticación en el gateway.
- *
- * Flujo:
- *   1. Frontend envía el idToken de Google a POST /auth/google
- *   2. Gateway llama al auth-service y obtiene el JWT propio
- *   3. Gateway guarda el JWT en una cookie HttpOnly (nunca expuesta a JS)
- *   4. En cada request siguiente, el browser envía la cookie automáticamente
- *   5. El JwtCookieFilter lee la cookie y la inyecta como header Authorization
- */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "${FRONTEND_URL:http://localhost:3000}", allowCredentials = "true")
 public class AuthController {
 
     private static final String COOKIE_NAME = "AUTH_TOKEN";
@@ -37,9 +28,6 @@ public class AuthController {
     @Value("${AUTH_SERVICE_URL:http://localhost:8081}")
     private String authServiceUrl;
 
-    /**
-     * Login — llama al auth-service, recibe el JWT y lo guarda en cookie HttpOnly.
-     */
     @PostMapping("/auth/google")
     public Mono<ResponseEntity<Map<String, Object>>> googleLogin(
             @RequestBody Map<String, String> body,
@@ -61,18 +49,16 @@ public class AuthController {
                 .map(authResponse -> {
                     String jwt = (String) authResponse.get("token");
 
-                    // Cookie HttpOnly — JS nunca puede leerla
                     ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, jwt)
-                            .httpOnly(true)                  // ← JS no puede acceder
-                            .secure(false)                   // ← cambiar a true en producción (HTTPS)
+                            .httpOnly(true)
+                            .secure(false)           // true en producción (HTTPS)
                             .path("/")
                             .maxAge(Duration.ofDays(1))
-                            .sameSite("Strict")
+                            .sameSite("Lax")         // Lax en vez de Strict para compatibilidad local
                             .build();
 
                     response.addCookie(cookie);
 
-                    // Devolver info del usuario pero SIN el token
                     return ResponseEntity.ok(Map.of(
                             "name",      authResponse.getOrDefault("name", ""),
                             "avatarUrl", authResponse.getOrDefault("avatarUrl", ""),
@@ -86,27 +72,20 @@ public class AuthController {
                 });
     }
 
-    /**
-     * Logout — borra la cookie del browser.
-     */
     @PostMapping("/auth/logout")
     public Mono<ResponseEntity<Map<String, String>>> logout(ServerHttpResponse response) {
         ResponseCookie deleteCookie = ResponseCookie.from(COOKIE_NAME, "")
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
-                .maxAge(Duration.ZERO)   // maxAge=0 borra la cookie
-                .sameSite("Strict")
+                .maxAge(Duration.ZERO)
+                .sameSite("Lax")
                 .build();
 
         response.addCookie(deleteCookie);
         return Mono.just(ResponseEntity.ok(Map.of("message", "Sesión cerrada")));
     }
 
-    /**
-     * Verifica si hay sesión activa (la cookie existe y es válida).
-     * El JwtCookieFilter ya habrá rechazado el request si el token es inválido.
-     */
     @GetMapping("/auth/me")
     public Mono<ResponseEntity<Map<String, String>>> me(ServerHttpRequest request) {
         String userId = request.getHeaders().getFirst("X-User-Id");
