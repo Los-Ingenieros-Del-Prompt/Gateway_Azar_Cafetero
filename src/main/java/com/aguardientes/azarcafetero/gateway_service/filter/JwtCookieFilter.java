@@ -43,6 +43,12 @@ public class JwtCookieFilter extends AbstractGatewayFilterFactory<JwtCookieFilte
         return (exchange, chain) -> {
             HttpCookie cookie = exchange.getRequest().getCookies().getFirst(COOKIE_NAME);
 
+            String path = exchange.getRequest().getURI().getPath();
+
+            if (path.startsWith("/api/building")) {
+                return chain.filter(exchange);
+            }
+
             if (cookie == null || cookie.getValue().isBlank()) {
                 log.debug("Cookie AUTH_TOKEN ausente — 401");
                 return unauthorized(exchange);

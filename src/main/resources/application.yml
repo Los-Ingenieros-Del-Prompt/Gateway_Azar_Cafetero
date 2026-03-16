@@ -18,10 +18,11 @@ spring:
     gateway:
 
       globalcors:
+        add-to-simple-url-handler-mapping: true
         cors-configurations:
           '[/**]':
-            allowed-origins:
-              - ${FRONTEND_URL:http://localhost:3000}
+            allowed-origin-patterns:
+              - "*"
             allowed-methods:
               - GET
               - POST
@@ -52,6 +53,7 @@ spring:
 
       httpclient:
         wiretap: false
+
       httpserver:
         wiretap: false
 
@@ -63,6 +65,7 @@ management:
     web:
       exposure:
         include: health, info, gateway
+
   endpoint:
     health:
       show-details: always

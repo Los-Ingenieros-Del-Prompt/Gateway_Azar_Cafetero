@@ -1,2 +1,9 @@
-/home/karol/AzarCafetero/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/ApiGatewayApplication.java
-/home/karol/AzarCafetero/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/config/JwtProperties.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/ApiGatewayApplication.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/config/JwtProperties.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/config/JwtValidator.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/config/RateLimiterConfig.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/config/WebClientConfig.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/controller/AuthController.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/exception/GatewayExceptionHandler.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/filter/JwtCookieFilter.java
+/home/minin/storage/Uni/ARSW/AzarCafetero/Gateway/Gateway_Azar_Cafetero/src/main/java/com/aguardientes/azarcafetero/gateway_service/filter/RequestLoggingFilter.java
