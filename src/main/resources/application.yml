@@ -37,8 +37,32 @@ spring:
             max-age: 3600
 
       routes:
+        # Brisca WebSocket route - handles all /brisca/ws/** including SockJS endpoints
+        - id: brisca-websocket
+          uri: http://host.docker.internal:8089
+          predicates:
+            - Path=/brisca/ws/**
+          filters:
+            - RewritePath=/brisca/(?<segment>.*), /${segment}
+
+        # Game WebSocket service route - handles all /game/ws/** including SockJS endpoints
+        - id: game-websocket
+          uri: http://host.docker.internal:8085
+          predicates:
+            - Path=/game/ws/**
+          filters:
+            - RewritePath=/game/(?<segment>.*), /${segment}
+
+        # Game WebSocket REST API
+        - id: game-api
+          uri: http://host.docker.internal:8085
+          predicates:
+            - Path=/game/api/**
+          filters:
+            - RewritePath=/game/(?<segment>.*), /${segment}
+
         - id: lobby
-          uri: ${LOBBY_SERVICE_URL:http://localhost:8082}
+          uri: http://host.docker.internal:8082
           predicates:
             - Path=/api/**
           filters:
@@ -51,7 +75,7 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
                 
         - id: user-service
-          uri: ${USER_SERVICE_URL:http://localhost:8084}
+          uri: http://host.docker.internal:8084
           predicates:
             - Path=/profile/**
           filters:

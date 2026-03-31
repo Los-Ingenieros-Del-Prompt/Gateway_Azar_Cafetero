@@ -37,6 +37,30 @@ spring:
             max-age: 3600
 
       routes:
+        # Brisca WebSocket route - handles all /brisca/ws/** including SockJS endpoints
+        - id: brisca-websocket
+          uri: ${BRISCA_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/brisca/ws/**
+          filters:
+            - RewritePath=/brisca/(?<segment>.*), /${segment}
+
+        # Game WebSocket service route - handles all /game/ws/** including SockJS endpoints
+        - id: game-websocket
+          uri: ${GAME_WS_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/game/ws/**
+          filters:
+            - RewritePath=/game/(?<segment>.*), /${segment}
+
+        # Game WebSocket REST API
+        - id: game-api
+          uri: ${GAME_WS_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/game/api/**
+          filters:
+            - RewritePath=/game/(?<segment>.*), /${segment}
+
         - id: lobby
           uri: ${LOBBY_SERVICE_URL:http://localhost:8082}
           predicates:
@@ -49,11 +73,27 @@ spring:
                 redis-rate-limiter.burstCapacity: 40
                 redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@userKeyResolver}"
+                
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/profile/**
+          filters:
+            - JwtCookieFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
 
       httpclient:
         wiretap: false
       httpserver:
         wiretap: false
+
+
+        
 
 jwt:
   secret: ${JWT_SECRET}
