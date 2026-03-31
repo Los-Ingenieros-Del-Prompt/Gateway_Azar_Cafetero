@@ -39,7 +39,7 @@ spring:
       routes:
         # Brisca WebSocket route - handles all /brisca/ws/** including SockJS endpoints
         - id: brisca-websocket
-          uri: http://host.docker.internal:8089
+          uri: http://127.0.0.1:8089
           predicates:
             - Path=/brisca/ws/**
           filters:
@@ -47,7 +47,7 @@ spring:
 
         # Game WebSocket service route - handles all /game/ws/** including SockJS endpoints
         - id: game-websocket
-          uri: http://host.docker.internal:8085
+          uri: http://127.0.0.1:8085
           predicates:
             - Path=/game/ws/**
           filters:
@@ -55,14 +55,14 @@ spring:
 
         # Game WebSocket REST API
         - id: game-api
-          uri: http://host.docker.internal:8085
+          uri: http://127.0.0.1:8085
           predicates:
             - Path=/game/api/**
           filters:
             - RewritePath=/game/(?<segment>.*), /${segment}
 
         - id: lobby
-          uri: http://host.docker.internal:8082
+          uri: http://127.0.0.1:8082
           predicates:
             - Path=/api/**
           filters:
@@ -75,7 +75,7 @@ spring:
                 key-resolver: "#{@userKeyResolver}"
                 
         - id: user-service
-          uri: http://host.docker.internal:8084
+          uri: http://127.0.0.1:8084
           predicates:
             - Path=/profile/**
           filters:

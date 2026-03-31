@@ -35,4 +35,4 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/azar-gateway:latest
             docker stop azar-gateway || true
             docker rm azar-gateway || true
-            docker run -d --name azar-gateway --restart unless-stopped -p 8080:8080 -e JWT_SECRET="${{ secrets.JWT_SECRET }}" -e AUTH_SERVICE_URL="${{ secrets.AUTH_SERVICE_URL }}" -e LOBBY_SERVICE_URL="${{ secrets.LOBBY_SERVICE_URL }}" -e GAME_WS_SERVICE_URL="${{ secrets.GAME_WS_SERVICE_URL }}" -e BRISCA_SERVICE_URL="${{ secrets.BRISCA_SERVICE_URL }}" -e USER_SERVICE_URL="${{ secrets.USER_SERVICE_URL }}" -e FRONTEND_URL="${{ secrets.FRONTEND_URL }}" -e REDIS_HOST="${{ secrets.REDIS_HOST }}" -e REDIS_PORT="${{ secrets.REDIS_PORT }}" -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" ${{ secrets.DOCKERHUB_USERNAME }}/azar-gateway:latest
+            docker run -d --name azar-gateway --restart unless-stopped --network host -e JWT_SECRET="${{ secrets.JWT_SECRET }}" -e REDIS_HOST="${{ secrets.REDIS_HOST }}" -e REDIS_PORT="${{ secrets.REDIS_PORT }}" -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" -e FRONTEND_URL="${{ secrets.FRONTEND_URL }}" ${{ secrets.DOCKERHUB_USERNAME }}/azar-gateway:latest
