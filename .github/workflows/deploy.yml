@@ -36,26 +36,80 @@ jobs:
             docker stop azar-gateway || true
             docker rm azar-gateway || true
             docker run -d --name azar-gateway --restart unless-stopped --network host -e JWT_SECRET="${{ secrets.JWT_SECRET }}" -e REDIS_HOST="${{ secrets.REDIS_HOST }}" -e REDIS_PORT="${{ secrets.REDIS_PORT }}" -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" -e FRONTEND_URL="${{ secrets.FRONTEND_URL }}" ${{ secrets.DOCKERHUB_USERNAME }}/azar-gateway:latest
-      - name: Ver config nginx
+      
+      - name: Agregar ruta /player/ en nginx
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo cat /etc/nginx/nginx.conf
-            echo "=== conf.d ==="
-            sudo ls /etc/nginx/conf.d/
-            sudo cat /etc/nginx/conf.d/*.conf 2>/dev/null || true
-            echo "=== sites-enabled ==="
-            sudo ls /etc/nginx/sites-enabled/ 2>/dev/null || true
-            sudo cat /etc/nginx/sites-enabled/*.conf 2>/dev/null || true
-      - name: Ver logs del gateway
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sleep 8
-            docker logs azar-gateway --tail 50
+            sudo tee /etc/nginx/conf.d/azar.conf > /dev/null << 'NGINXCONF'
+            server {
+                server_name azar-cafetero.duckdns.org;
+
+                location / {
+                    proxy_pass http://127.0.0.1:3000;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                }
+                location /auth/ {
+                    proxy_pass http://127.0.0.1:8080/auth/;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                }
+                location /api/ {
+                    proxy_pass http://127.0.0.1:8080/api/;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                }
+                location /player/ {
+                    proxy_pass http://127.0.0.1:8080/player/;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header Cookie $http_cookie;
+                }
+                location /api/tables {
+                    proxy_pass http://127.0.0.1:8085;
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection "upgrade";
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                }
+                location /ws/ {
+                    proxy_pass http://127.0.0.1:8085;
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection "upgrade";
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                }
+                location ^~ /brisca-ws/ {
+                    proxy_pass http://127.0.0.1:8089/ws/;
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection "upgrade";
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_read_timeout 3600s;
+                    proxy_send_timeout 3600s;
+                    proxy_connect_timeout 3600s;
+                }
+
+                listen 443 ssl;
+                ssl_certificate /etc/letsencrypt/live/azar-cafetero.duckdns.org/fullchain.pem;
+                ssl_certificate_key /etc/letsencrypt/live/azar-cafetero.duckdns.org/privkey.pem;
+                include /etc/letsencrypt/options-ssl-nginx.conf;
+                ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+            }
+            server {
+                if ($host = azar-cafetero.duckdns.org) {
+                    return 301 https://$host$request_uri;
+                }
+                listen 80;
+                server_name azar-cafetero.duckdns.org;
+                return 404;
+            }
+            NGINXCONF
+            sudo nginx -t && sudo systemctl reload nginx
