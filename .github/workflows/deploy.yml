@@ -63,6 +63,20 @@ jobs:
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;
                 }
+                location /player/balance/live {
+                    proxy_pass http://127.0.0.1:8080/player/balance/live;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header Cookie $http_cookie;
+                    
+                    # Headers necesarios para SSE
+                    proxy_set_header Connection '';
+                    proxy_http_version 1.1;
+                    chunked_transfer_encoding on;
+                    proxy_buffering off;
+                    proxy_cache off;
+                    proxy_read_timeout 3600s;
+                }
                 location /player/ {
                     proxy_pass http://127.0.0.1:8080/player/;
                     proxy_set_header Host $host;
