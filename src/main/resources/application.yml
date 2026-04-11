@@ -61,6 +61,19 @@ spring:
           filters:
             - RewritePath=/game/(?<segment>.*), /${segment}
 
+        - id: wallet-service
+          uri: http://127.0.0.1:8095
+          predicates:
+            - Path=/player/**
+          filters:
+            - JwtCookieFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+
         - id: lobby
           uri: http://127.0.0.1:8082
           predicates:
