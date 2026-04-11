@@ -36,3 +36,13 @@ jobs:
             docker stop azar-gateway || true
             docker rm azar-gateway || true
             docker run -d --name azar-gateway --restart unless-stopped --network host -e JWT_SECRET="${{ secrets.JWT_SECRET }}" -e REDIS_HOST="${{ secrets.REDIS_HOST }}" -e REDIS_PORT="${{ secrets.REDIS_PORT }}" -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" -e FRONTEND_URL="${{ secrets.FRONTEND_URL }}" ${{ secrets.DOCKERHUB_USERNAME }}/azar-gateway:latest
+            
+      - name: Ver logs del gateway
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sleep 8
+            docker logs azar-gateway --tail 50
