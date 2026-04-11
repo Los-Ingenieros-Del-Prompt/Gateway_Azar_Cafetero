@@ -60,9 +60,10 @@ public class AuthController {
                     response.addCookie(cookie);
 
                     return ResponseEntity.ok(Map.of(
-                            "name",      authResponse.getOrDefault("name", ""),
-                            "avatarUrl", authResponse.getOrDefault("avatarUrl", ""),
-                            "isNewUser", authResponse.getOrDefault("isNewUser", false)
+                        "name",      authResponse.getOrDefault("name", ""),
+                        "avatarUrl", authResponse.getOrDefault("avatarUrl", ""),
+                        "isNewUser", authResponse.getOrDefault("isNewUser", false),
+                        "userId",    authResponse.getOrDefault("userId", "")
                     ));
                 })
                 .onErrorResume(ex -> {
