@@ -97,6 +97,12 @@ jobs:
                     proxy_set_header Host $host;
                     proxy_set_header X-Real-IP $remote_addr;
                 }
+                location /game/api/tables {
+                    proxy_pass http://127.0.0.1:8085/api/tables;
+                    proxy_http_version 1.1;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                }
                 location /ws/ {
                     proxy_pass http://127.0.0.1:8085;
                     proxy_http_version 1.1;
