@@ -45,7 +45,7 @@ spring:
             - RewritePath=/brisca/(?<segment>.*), /${segment}
 
         - id: parques-websocket
-          uri: http://127.0.0.1:8085
+          uri: http://127.0.0.1:8086
           predicates:
             - Path=/parques-ws/**
           filters:
