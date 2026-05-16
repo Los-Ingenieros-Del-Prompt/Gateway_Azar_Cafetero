@@ -28,7 +28,7 @@ public class AuthController {
     @Value("${AUTH_SERVICE_URL:http://localhost:8081}")
     private String authServiceUrl;
 
-    @PostMapping("/auth/google")
+    @PostMapping({"/auth/google", "/api-proxy/auth/google"})
     public Mono<ResponseEntity<Map<String, Object>>> googleLogin(
             @RequestBody Map<String, String> body,
             ServerHttpResponse response) {
@@ -73,7 +73,7 @@ public class AuthController {
                 });
     }
 
-    @PostMapping("/auth/logout")
+    @PostMapping({"/auth/logout", "/api-proxy/auth/logout"})
     public Mono<ResponseEntity<Map<String, String>>> logout(ServerHttpResponse response) {
         ResponseCookie deleteCookie = ResponseCookie.from(COOKIE_NAME, "")
                 .httpOnly(true)
@@ -87,7 +87,7 @@ public class AuthController {
         return Mono.just(ResponseEntity.ok(Map.of("message", "Sesión cerrada")));
     }
 
-    @GetMapping("/auth/me")
+    @GetMapping({"/auth/me", "/api-proxy/auth/me"})
     public Mono<ResponseEntity<Map<String, String>>> me(ServerHttpRequest request) {
         String userId = request.getHeaders().getFirst("X-User-Id");
         if (userId == null) {
